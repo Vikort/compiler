@@ -19,17 +19,21 @@ $ alias grun='java org.antlr.v4.gui.TestRig
 ### For Windows
   1. Download [antlr4](https://www.antlr.org/download/antlr-4.9.1-complete.jar).
   1. Add antlr4-complete.jar to CLASSPATH, either:
-     1. Permanently: Using System Properties dialog > Environment variables > Create or append to CLASSPATH variable
-     1. Temporarily, at command line:
+     1. **Permanently**: 
+        > Using System Properties dialog > Environment variables > Create or append to CLASSPATH variable
+     1. **Temporarily**, at command line:
       ```cmd 
       SET CLASSPATH=.;C:\Javalib\antlr4-complete.jar;%CLASSPATH%
       ```
   1. Create batch commands for ANTLR Tool, TestRig in dir in PATH
-  * antlr4.bat: java org.antlr.v4.Tool %*
-  * grun.bat:   java org.antlr.v4.gui.TestRig %*
+  * `antlr4.bat: java org.antlr.v4.Tool %*`
+  * `grun.bat:   java org.antlr.v4.gui.TestRig %*`
   
   ## Generate Lexer, Parser, Listener, Visitor
   
+After changing `g4` file you need to regenerate generated module by following commands:
+
   ```bash 
-  antlr4 -Dlanguage=Python3 -visitor EasyXML.g4
+  $ cd gramma
+  $ antlr4 -Dlanguage=Python3 -visitor EasyXML.g4 -o ../generated/
   ```
