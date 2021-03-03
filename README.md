@@ -10,12 +10,14 @@ Viktor Markovec, group: 821703.
 
 ``` bash
 $ cd /usr/local/lib
-$ wget https://www.antlr.org/download/antlr-4.9.1-complete.jar
-$ export CLASSPATH=".:/usr/local/lib/antlr-4.9.1-complete.jar:$CLASSPATH"
-$ alias antlr4='java -jar /usr/local/lib/antlr-4.9.1-complete.jar
-$ alias grun='java org.antlr.v4.gui.TestRig
+$ sudo wget https://www.antlr.org/download/antlr-4.9.1-complete.jar
 ```
-
+in the end of your bash config file (in Ubuntu it's .bashrc in your user folder) add next lines:
+```
+export CLASSPATH=".:/usr/local/lib/antlr-4.9.1-complete.jar:$CLASSPATH"
+alias antlr4='java -jar /usr/local/lib/antlr-4.9.1-complete.jar'
+alias grun='java org.antlr.v4.gui.TestRig'
+```
 ### For Windows
   1. Download [antlr4](https://www.antlr.org/download/antlr-4.9.1-complete.jar).
   1. Add antlr4-complete.jar to CLASSPATH, either:
