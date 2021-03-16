@@ -3,9 +3,9 @@ grammar EasyXML;
 * Parser Rules
 */
 //
-var_init: TYPE VARNAME ASSIGMENT NEW TYPE OPEN_BRACKET expression CLOSE_BRACKET SEMICOLON;
+var_init: TYPE VARNAME ASSIGMENT NEW TYPE OPEN_BRACKET expression? CLOSE_BRACKET SEMICOLON | (TYPE|ARRAY_TYPE) assignment;
 
-assignment: (TYPE|ARRAY_TYPE)? VARNAME (OPEN_BRACKET NUMBER_LITERAL CLOSE_BRACKET)? ASSIGMENT expression SEMICOLON;
+assignment: VARNAME (OPEN_BRACKET NUMBER_LITERAL CLOSE_BRACKET)? ASSIGMENT expression SEMICOLON;
 
 sum_assignment: VARNAME (OPEN_BRACKET NUMBER_LITERAL CLOSE_BRACKET)? SUM_ASSIGMENT expression SEMICOLON;
 
@@ -15,7 +15,7 @@ get: get SEMICOLON|
 
 get_array_element: VARNAME OPEN_SQUAR_EBRACKET NUMBER_LITERAL CLOSE_SQUARE_BRACKET;
 
-func_call: (TYPE|ARRAY_TYPE)? VARNAME OPEN_BRACKET params? CLOSE_BRACKET SEMICOLON;
+func_call: VARNAME OPEN_BRACKET params? CLOSE_BRACKET SEMICOLON;
 
 if_statement: if_block else_if_block* else_block?;
 
@@ -27,20 +27,21 @@ for_statement: FOR OPEN_BRACKET range_statement CLOSE_BRACKET OPEN_FIGURE_BRACKE
 
 while_statement:WHILE OPEN_BRACKET condition CLOSE_BRACKET OPEN_FIGURE_BRACKET operation* CLOSE_FIGURE_BRACKET;
 
-func_init: (TYPE|ARRAY_TYPE) VARNAME OPEN_BRACKET ((TYPE|ARRAY_TYPE) VARNAME (',' (TYPE|ARRAY_TYPE) VARNAME)*)? CLOSE_BRACKET OPEN_FIGURE_BRACKET operation* CLOSE_FIGURE_BRACKET;
+func_init: (TYPE|ARRAY_TYPE) VARNAME OPEN_BRACKET params? CLOSE_BRACKET OPEN_FIGURE_BRACKET operation* RETURN expression? SEMICOLON CLOSE_FIGURE_BRACKET;
 
-type_cast:VARNAME ASSIGMENT OPEN_BRACKET (TYPE) CLOSE_BRACKET VARNAME SEMICOLON;
+type_cast:OPEN_BRACKET (TYPE) CLOSE_BRACKET VARNAME;
 
 range_statement: (TYPE|ARRAY_TYPE) VARNAME IN VARNAME;
 
-condition:expression (AND expression| OR expression)*;
+condition:NOT? expression (ANDOR NOT? condition)*;
 
-params: expression (',' expression)*;
+params: expression (',' expression)* | (TYPE|ARRAY_TYPE) VARNAME (',' (TYPE|ARRAY_TYPE) VARNAME)*;
 
-expression: OPEN_BRACKET expression CLOSE_BRACKET|
+expression: expression SEMICOLON|
+            OPEN_BRACKET expression CLOSE_BRACKET|
             expression ACTION_OPERATOR expression|
             expression BOOL_OPERATOR expression|
-            get_operation|
+            get_operation| type_cast|
             (NUMBER_LITERAL | STRING_LITERAL | VARNAME);
 
 get_operation:get|func_call|get_array_element;
@@ -50,8 +51,7 @@ operation:get_operation|
           sum_assignment|
           if_statement|
           for_statement|
-          while_statement|
-          type_cast;
+          while_statement;
 xml: (operation|func_init)+;
 /*
 * Lexer Rules
@@ -63,6 +63,7 @@ TYPE: DOCUMENT|NODE|ATTRIBUTE|STRING|INT|FLOAT;
 
 ACTION_OPERATOR: PlUS| MINUS| MULTIPLICATION| DIVISION;
 BOOL_OPERATOR: MORE_THAN|MORE_EQUAL|LESS_THAN|LESS_EQUAL|EQUAL|NOT_EQUAL;
+ANDOR: AND| OR;
 
 DOCUMENT: 'document';
 NODE: 'node';
@@ -79,12 +80,13 @@ IN: 'in';
 AND: 'and';
 OR:'or';
 NEW:'new';
+RETURN: 'return';
 
 VARNAME: [a-zA-Z]+;
 NUMBER_LITERAL: [0-9]+('.'[0-9]+)?;
 STRING_LITERAL : QOUTES.*?QOUTES;
 
-WHITESPACE: (' '|'\t'|'\n') -> skip;
+WHITESPACE: (' '|'\t'|'\n'| '\r') -> skip;
 
 OPEN_BRACKET: '(';
 CLOSE_BRACKET: ')';
@@ -108,5 +110,6 @@ PlUS: '+';
 MINUS: '-';
 MULTIPLICATION: '*';
 DIVISION: '/';
+NOT: '!';
 
 COMMENT : '//' ~[\r\n]* '\r'? '\n' -> skip ;

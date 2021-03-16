@@ -51,6 +51,7 @@ while (current.size()){
 
 node someFunc(node someNode){
    print(someNode);
+   return someNode;
 }
 
 doc = (document) root;

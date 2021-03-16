@@ -1,5 +1,5 @@
 from generated import EasyXMLParser, EasyXMLLexer
-from listener import MyListener
+from visitor.myVisitor import MyVisitor
 from antlr4 import *
 
 
@@ -9,9 +9,9 @@ def main():
     stream = CommonTokenStream(lexer)
     parser = EasyXMLParser.EasyXMLParser(stream)
     tree = parser.xml()
-    print(tree.toStringTree(None, parser))
-    walker = ParseTreeWalker()
-    walker.walk(MyListener.MyListener(), tree)
+    visitor = MyVisitor()
+    visitor.visit(tree)
+    print(0)
 
 
 if __name__ == '__main__':
