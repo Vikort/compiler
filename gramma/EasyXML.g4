@@ -2,7 +2,6 @@ grammar EasyXML;
 /*
 * Parser Rules
 */
-//
 var_init: TYPE VARNAME ASSIGMENT NEW TYPE OPEN_BRACKET expression? CLOSE_BRACKET SEMICOLON | (TYPE|ARRAY_TYPE) assignment;
 
 assignment: VARNAME (OPEN_BRACKET NUMBER_LITERAL CLOSE_BRACKET)? ASSIGMENT expression SEMICOLON;
@@ -35,7 +34,9 @@ range_statement: (TYPE|ARRAY_TYPE) VARNAME IN VARNAME;
 
 condition:NOT? expression (ANDOR NOT? condition)*;
 
-params: expression (',' expression)* | (TYPE|ARRAY_TYPE) VARNAME (',' (TYPE|ARRAY_TYPE) VARNAME)*;
+params: expression (',' expression)* | param (',' param)*;
+
+param: (TYPE|ARRAY_TYPE) VARNAME;
 
 expression: expression SEMICOLON|
             OPEN_BRACKET expression CLOSE_BRACKET|
@@ -45,7 +46,9 @@ expression: expression SEMICOLON|
             (NUMBER_LITERAL | STRING_LITERAL | VARNAME);
 
 get_operation:get|func_call|get_array_element;
+
 operation:get_operation|
+          type_cast|
           var_init|
           assignment|
           sum_assignment|

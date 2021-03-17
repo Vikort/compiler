@@ -37,5 +37,5 @@ After changing `g4` file you need to regenerate generated module by following co
 
   ```bash 
   $ cd gramma
-  $ antlr4 -Dlanguage=Python3 -visitor EasyXML.g4 -o ../generated/
+  $ antlr4 -Dlanguage=Python3 -visitor -no-listener EasyXML.g4 -o ../generated/
   ```

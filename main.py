@@ -11,6 +11,8 @@ def main():
     tree = parser.xml()
     visitor = MyVisitor()
     visitor.visit(tree)
+    visitor.root.print()
+    visitor.root.check_vars_scope()
     print(0)
 
 

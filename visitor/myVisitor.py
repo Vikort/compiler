@@ -9,9 +9,8 @@ class MyVisitor(EasyXMLVisitor):
         self.root = Node()
 
     # Visit a parse tree produced by EasyXMLParser#var_init.
-    def visitVar_init(self, ctx: EasyXMLParser.Var_initContext, parent_node=None):
-        if parent_node is None:
-            parent_node = self.root
+    def visitVar_init(self, ctx: EasyXMLParser.Var_initContext):
+
         if ctx.TYPE() is not None and len(ctx.TYPE()) == 2:
             if ctx.TYPE()[0].getText() != ctx.TYPE()[1].getText():
                 raise Exception(ctx.TYPE()[0].getText(), '!=', ctx.TYPE()[1].getText())
@@ -31,7 +30,7 @@ class MyVisitor(EasyXMLVisitor):
         else:
             expression = self.visitExpression(ctx.expression())
         if ctx.assignment() is not None:
-            assignment = self.visitAssignment(ctx.assignment(), parent_node='var_init')
+            assignment = self.visitAssignment(ctx.assignment())
             var_name = assignment.var_name
             expression = assignment.children[0]
         else:
@@ -41,13 +40,11 @@ class MyVisitor(EasyXMLVisitor):
             var_type
         )
         var_init_node.children.append(expression)
-        parent_node.children.append(var_init_node)
+
         return var_init_node
 
     # Visit a parse tree produced by EasyXMLParser#assignment.
-    def visitAssignment(self, ctx: EasyXMLParser.AssignmentContext, parent_node=None):
-        if parent_node is None:
-            parent_node = self.root
+    def visitAssignment(self, ctx: EasyXMLParser.AssignmentContext):
         var_name = ctx.VARNAME().getText()
         expression = self.visitExpression(ctx.expression())
         index = ctx.NUMBER_LITERAL().getText() if ctx.NUMBER_LITERAL() is not None else 0
@@ -56,14 +53,11 @@ class MyVisitor(EasyXMLVisitor):
             index
         )
         assignment_node.children.append(expression)
-        if parent_node != 'var_init':
-            parent_node.children.append(assignment_node)
+
         return assignment_node
 
     # Visit a parse tree produced by EasyXMLParser#sum_assignment.
-    def visitSum_assignment(self, ctx: EasyXMLParser.Sum_assignmentContext, parent_node=None):
-        if parent_node is None:
-            parent_node = self.root
+    def visitSum_assignment(self, ctx: EasyXMLParser.Sum_assignmentContext):
         var_name = ctx.VARNAME().getText()
         expression = self.visitExpression(ctx.expression())
         index = ctx.NUMBER_LITERAL().getText() if ctx.NUMBER_LITERAL() is not None else 0
@@ -72,41 +66,34 @@ class MyVisitor(EasyXMLVisitor):
             index
         )
         sum_assignment_node.children.append(expression)
-        parent_node.children.append(sum_assignment_node)
         return sum_assignment_node
 
     # Visit a parse tree produced by EasyXMLParser#get.
-    def visitGet(self, ctx: EasyXMLParser.GetContext, parent_node=None, level=0):
+    def visitGet(self, ctx: EasyXMLParser.GetContext, parent_node=None):
         if parent_node is None:
             parent_node = self.root
         get_node = Get()
         if ctx.get() is not None:
-            get_node = self.visitGet(ctx.get(), parent_node, level + 1)
+            get_node = self.visitGet(ctx.get(), parent_node)
             if ctx.params() is not None:
                 params = self.visitParams(ctx.params())
                 get_node.children.append(params)
         else:
             get_node.var_name = ctx.VARNAME()[0].getText()
             get_node.attribute_name = ctx.VARNAME()[1].getText()
-        if level == 0:
-            parent_node.children.append(get_node)
+
         return get_node
 
     # Visit a parse tree produced by EasyXMLParser#get_array_element.
-    def visitGet_array_element(self, ctx: EasyXMLParser.Get_array_elementContext, parent_node=None):
-        if parent_node is None:
-            parent_node = self.root
+    def visitGet_array_element(self, ctx: EasyXMLParser.Get_array_elementContext):
         get_array_element_node = GetArrayElement(
             ctx.VARNAME().getText(),
             ctx.NUMBER_LITERAL().getText()
         )
-        parent_node.children.append(get_array_element_node)
         return get_array_element_node
 
     # Visit a parse tree produced by EasyXMLParser#func_call.
-    def visitFunc_call(self, ctx: EasyXMLParser.Func_callContext, parent_node=None):
-        if parent_node is None:
-            parent_node = self.root
+    def visitFunc_call(self, ctx: EasyXMLParser.Func_callContext):
         params = Params()
         if ctx.params() is not None:
             params = self.visitParams(ctx.params())
@@ -114,20 +101,16 @@ class MyVisitor(EasyXMLVisitor):
             ctx.VARNAME().getText()
         )
         func_call_node.children.append(params)
-        parent_node.children.append(func_call_node)
         return func_call_node
 
     # Visit a parse tree produced by EasyXMLParser#if_statement.
-    def visitIf_statement(self, ctx: EasyXMLParser.If_statementContext, parent_node=None):
-        if parent_node is None:
-            parent_node = self.root
+    def visitIf_statement(self, ctx: EasyXMLParser.If_statementContext):
 
         if_state = IfStatement(
             self.visitIf_block(ctx.if_block()),
             self.visitElse_if_block(ctx.else_if_block()) if len(ctx.else_if_block()) != 0 else None,
             self.visitElse_block(ctx.else_block()) if ctx.else_block() is not None else None
         )
-        parent_node.children.append(if_state)
         return if_state
 
     # Visit a parse tree produced by EasyXMLParser#if_block.
@@ -137,7 +120,9 @@ class MyVisitor(EasyXMLVisitor):
         )
         operations = ctx.operation()
         for i in operations:
-            if_block.children.append(self.visitOperation(i))
+            if_block.children.append(self.visitOperation(i, if_block))
+        while None in if_block.children:
+            if_block.children.remove(None)
         return if_block
 
     # Visit a parse tree produced by EasyXMLParser#else_if_block.
@@ -147,7 +132,9 @@ class MyVisitor(EasyXMLVisitor):
         )
         operations = ctx.operation()
         for i in operations:
-            else_if_block.children.append(self.visitOperation(i))
+            else_if_block.children.append(self.visitOperation(i, else_if_block))
+        while None in else_if_block.children:
+            else_if_block.children.remove(None)
         return else_if_block
 
     # Visit a parse tree produced by EasyXMLParser#else_block.
@@ -155,33 +142,33 @@ class MyVisitor(EasyXMLVisitor):
         else_block = ElseBlock()
         operations = ctx.operation()
         for i in operations:
-            else_block.children.append(self.visitOperation(i))
+            else_block.children.append(self.visitOperation(i, else_block))
+        while None in else_block.children:
+            else_block.children.remove(None)
         return else_block
 
     # Visit a parse tree produced by EasyXMLParser#for_statement.
-    def visitFor_statement(self, ctx: EasyXMLParser.For_statementContext, parent_node=None):
-        if parent_node is None:
-            parent_node = self.root
+    def visitFor_statement(self, ctx: EasyXMLParser.For_statementContext):
         for_state = ForStatement(
             self.visitRange_statement(ctx.range_statement())
         )
         operations = ctx.operation()
         for i in operations:
-            for_state.children.append(self.visitOperation(i))
-        parent_node.children.append(for_state)
+            for_state.children.append(self.visitOperation(i, for_state))
+        while None in for_state.children:
+            for_state.children.remove(None)
         return for_state
 
     # Visit a parse tree produced by EasyXMLParser#while_statement.
-    def visitWhile_statement(self, ctx: EasyXMLParser.While_statementContext, parent_node=None):
-        if parent_node is None:
-            parent_node = self.root
+    def visitWhile_statement(self, ctx: EasyXMLParser.While_statementContext):
         while_state = WhileStatement(
             self.visitCondition(ctx.condition())
         )
         operations = ctx.operation()
         for i in operations:
-            while_state.children.append(self.visitOperation(i))
-        parent_node.children.append(while_state)
+            while_state.children.append(self.visitOperation(i, while_state))
+        while None in while_state.children:
+            while_state.children.remove(None)
         return while_state
 
     # Visit a parse tree produced by EasyXMLParser#func_init.
@@ -197,21 +184,20 @@ class MyVisitor(EasyXMLVisitor):
         )
         operations = ctx.operation()
         for i in operations:
-            func_init.children.append(self.visitOperation(i))
+            func_init.children.append(self.visitOperation(i, func_init))
+        while None in func_init.children:
+            func_init.children.remove(None)
 
-        func_init.return_statement.append(self.visitExpression(ctx.expression()))
+        func_init.return_statement = self.visitExpression(ctx.expression())
         parent_node.children.append(func_init)
         return func_init
 
     # Visit a parse tree produced by EasyXMLParser#type_cast.
-    def visitType_cast(self, ctx: EasyXMLParser.Type_castContext, parent_node=None):
-        if parent_node is None:
-            parent_node = self.root
+    def visitType_cast(self, ctx: EasyXMLParser.Type_castContext):
         type_cast_node = TypeCast(
             ctx.VARNAME().getText(),
             ctx.TYPE().getText()
         )
-        parent_node.children.append(type_cast_node)
         return type_cast_node
 
     # Visit a parse tree produced by EasyXMLParser#range_statement.
@@ -244,13 +230,24 @@ class MyVisitor(EasyXMLVisitor):
 
     # Visit a parse tree produced by EasyXMLParser#params.
     def visitParams(self, ctx: EasyXMLParser.ParamsContext):
-        # TODO add visit func_init params
-        expressions = ctx.expression()
         params = Params()
-        if len(expressions) != 0:
-            for i in expressions:
-                params.children.append(self.visitExpression(i))
-        return params
+        if ctx.expression() is not None and len(ctx.expression()) != 0:
+            expressions = ctx.expression()
+            if len(expressions) != 0:
+                for i in expressions:
+                    params.children.append(self.visitExpression(i))
+            return params
+        else:
+            if len(ctx.param()) != 0:
+                for i in ctx.param():
+                    params.children.append(self.visitParam(i))
+            return params
+
+    # Visit a parse tree produced by EasyXMLParser#param.
+    def visitParam(self, ctx: EasyXMLParser.ParamContext):
+        var_type = ctx.TYPE().getText() if ctx.TYPE() is not None else ctx.ARRAY_TYPE().getText()
+        var_name = ctx.VARNAME().getText()
+        return var_type, var_name
 
     # Visit a parse tree produced by EasyXMLParser#expression.
     def visitExpression(self, ctx: EasyXMLParser.ExpressionContext):
@@ -267,16 +264,18 @@ class MyVisitor(EasyXMLVisitor):
         if ctx.NUMBER_LITERAL() is not None:
             expression.value = ctx.NUMBER_LITERAL().getText()
         elif ctx.STRING_LITERAL() is not None:
-            expression.value = ctx.STRING_LITERAL().getText().replace('\'', '')
+            expression.value = ctx.STRING_LITERAL().getText()
         elif ctx.VARNAME() is not None:
             expression.value = ctx.VARNAME().getText()
         if expression.value is not None:
             return expression
 
         if ctx.get_operation() is not None:
-            expression.children.append(self.visitGet_operation(ctx.get_operation()))
+            expression.children.append(self.visitGet_operation(ctx.get_operation(), expression))
         elif ctx.type_cast() is not None:
             expression.children.append(self.visitType_cast(ctx.type_cast()))
+        while None in expression.children:
+            expression.children.remove(None)
         if len(expression.children) != 0:
             return expression
 
@@ -285,12 +284,38 @@ class MyVisitor(EasyXMLVisitor):
         return expression
 
     # Visit a parse tree produced by EasyXMLParser#get_operation.
-    def visitGet_operation(self, ctx: EasyXMLParser.Get_operationContext):
-        return self.visitChildren(ctx)
+    def visitGet_operation(self, ctx: EasyXMLParser.Get_operationContext, parent_node=None):
+        if parent_node is None:
+            parent_node = self.root
+
+        if ctx.get() is not None:
+            parent_node.children.append(self.visitGet(ctx.get(), parent_node))
+        elif ctx.get_array_element() is not None:
+            parent_node.children.append(self.visitGet_array_element(ctx.get_array_element()))
+        elif ctx.func_call() is not None:
+            parent_node.children.append(self.visitFunc_call(ctx.func_call()))
 
     # Visit a parse tree produced by EasyXMLParser#operation.
-    def visitOperation(self, ctx: EasyXMLParser.OperationContext):
-        return self.visitChildren(ctx)
+    def visitOperation(self, ctx: EasyXMLParser.OperationContext, parent_node=None):
+        if parent_node is None:
+            parent_node = self.root
+
+        if ctx.get_operation() is not None:
+            self.visitGet_operation(ctx.get_operation(), parent_node)
+        elif ctx.type_cast() is not None:
+            parent_node.children.append(self.visitType_cast(ctx.type_cast()))
+        elif ctx.while_statement() is not None:
+            parent_node.children.append(self.visitWhile_statement(ctx.while_statement()))
+        elif ctx.for_statement() is not None:
+            parent_node.children.append(self.visitFor_statement(ctx.for_statement()))
+        elif ctx.assignment() is not None:
+            parent_node.children.append(self.visitAssignment(ctx.assignment()))
+        elif ctx.sum_assignment() is not None:
+            parent_node.children.append(self.visitSum_assignment(ctx.sum_assignment()))
+        elif ctx.var_init() is not None:
+            parent_node.children.append(self.visitVar_init(ctx.var_init()))
+        elif ctx.if_statement() is not None:
+            parent_node.children.append(self.visitIf_statement(ctx.if_statement()))
 
     # Visit a parse tree produced by EasyXMLParser#xml.
     def visitXml(self, ctx: EasyXMLParser.XmlContext):

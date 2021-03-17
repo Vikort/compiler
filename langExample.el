@@ -32,6 +32,7 @@ del(someAtr);
 doc.delete();
 
 if (someNode == 'content') {
+   node test =  new node('tag');
    someNode = 'newContent';
    print(someNode);
 } else { 
@@ -39,19 +40,24 @@ if (someNode == 'content') {
 }
 
 for(node i in root){
+  node test =  new node('tag');
   print(i);
 } 
 
-current = doc.root();
+node current = doc.root();
 
 while (current.size()){
-   print(current); 
+   print(current);
+   node test =  new node('tag');
    current = current[0];
 }
 
 node someFunc(node someNode){
+   node test =  new node('tag');
    print(someNode);
    return someNode;
 }
 
 doc = (document) root;
+
+(node) root;

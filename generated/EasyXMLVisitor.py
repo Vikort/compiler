@@ -94,6 +94,11 @@ class EasyXMLVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by EasyXMLParser#param.
+    def visitParam(self, ctx:EasyXMLParser.ParamContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by EasyXMLParser#expression.
     def visitExpression(self, ctx:EasyXMLParser.ExpressionContext):
         return self.visitChildren(ctx)
