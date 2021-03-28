@@ -2,18 +2,26 @@ document doc = new document('doc.xml');
 node someNode = new node('tag');
 attribute someAtr = new attribute('atrName');
 someNode = 'content';
+
+node someFunc(node someNode){
+   node test =  new node('tag');
+   print(someNode);
+   return test;
+}
+
+
 someAtr = 'value';
 
 doc = 'newDoc.xml'; // this is a comment and this line override path to xml doc
 doc.save();
-node rootNode = doc.root(); 
+node rootNode = doc.root();
 node[] foundedNode = doc.findNode('content');
 
 
 node[] tempNode = someNode.findNode('content');
 
 
-attribute[] nodeAtrs = someNode.attributes;
+attribute[] nodeAttrs = someNode.attributes;
 someNode += someAtr;
 someNode += '+ new content';
 node firstNode = someNode[0];
@@ -22,9 +30,9 @@ someNode(2) = 'new content'; //override content of text node from 2 pos (string 
 
 someNode(2) += '+ new content'; //add content to text node from 2 pos
 
-someNode.insert(0,newTag); //insert node to 0 pos
+someNode.insert(0, someNode); //insert node to 0 pos
 
-someNode.add(newText); //insert node to the end of nodes
+someNode.add(someNode); //insert node to the end of nodes
 
 print(someNode);
 del(someNode);
@@ -35,6 +43,7 @@ if (someNode == 'content') {
    node test =  new node('tag');
    someNode = 'newContent';
    print(someNode);
+
 } else { 
    print(someNode);
 }
@@ -50,14 +59,13 @@ while (current.size()){
    print(current);
    node test =  new node('tag');
    current = current[0];
+   someFunc(test);
 }
 
-node someFunc(node someNode){
-   node test =  new node('tag');
-   print(someNode);
-   return someNode;
-}
+
+
+someFunc(root);
 
 doc = (document) root;
 
-(node) root;
+(node) doc;
