@@ -86,12 +86,7 @@ class VarInit(Node):
 
     def check_vars_scope(self, scope: dict = None):
         if Node.global_funcs.get(self.var_name) is not None:
-            custom_exception(
-                'Wrong var name there is function with name ' + self.var_name,
-                self.line,
-                self.column,
-                Exceptions.TYPE_ERROR
-            )
+            Node.global_funcs.pop(self.var_name)
         scope[self.var_name] = self.var_type
         for i in self.children:
             i.check_vars_scope(scope)
@@ -335,7 +330,7 @@ class FuncCall(Node):
 
     def check_vars_scope(self, scope: dict = None):
         if self.func_name != '':
-            if self.func_name not in Node.global_vars.keys():
+            if self.func_name not in Node.global_vars.keys() and self.func_name not in Node.global_funcs.keys():
                 custom_exception(
                     'Isn\'t initialized function: ' + self.func_name,
                     self.line,
@@ -366,7 +361,6 @@ class FuncCall(Node):
                     get_params = self.children[0].check_params_call(scope)
                     for i in range(len(need_params)):
                         if need_params[i] != get_params[i]:
-                            print(need_params[i], get_params[0])
                             custom_exception(
                                 "Get " + get_params[i] + " param, expected " + need_params[i],
                                 self.line,
@@ -383,14 +377,19 @@ class FuncCall(Node):
                             self.column,
                             Exceptions.TYPE_ERROR
                         )
-        elif need_params is None and len(self.children) == 0:
-            pass
-        else:
+        elif self.func_name in Node.global_funcs.keys():
             custom_exception(
                 "Get invalid params in " + self.func_name,
                 self.line,
                 self.column,
                 Exceptions.TYPE_ERROR
+            )
+        elif self.func_name not in Node.global_funcs.keys():
+            custom_exception(
+                'Isn\'t initialized function: ' + self.func_name,
+                self.line,
+                self.column,
+                Exceptions.NAME_ERROR
             )
 
 
