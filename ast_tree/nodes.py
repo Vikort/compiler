@@ -85,6 +85,13 @@ class VarInit(Node):
             i.print(level + 1)
 
     def check_vars_scope(self, scope: dict = None):
+        if Node.global_funcs.get(self.var_name) is not None:
+            custom_exception(
+                'Wrong var name there is function with name ' + self.var_name,
+                self.line,
+                self.column,
+                Exceptions.TYPE_ERROR
+            )
         scope[self.var_name] = self.var_type
         for i in self.children:
             i.check_vars_scope(scope)
@@ -274,6 +281,7 @@ class Get(Node):
                 self.column,
                 Exceptions.TYPE_ERROR
             )
+        return Node.global_vars[self.attribute_name]
 
 
 class GetArrayElement(Node):
@@ -358,7 +366,7 @@ class FuncCall(Node):
                     get_params = self.children[0].check_params_call(scope)
                     for i in range(len(need_params)):
                         if need_params[i] != get_params[i]:
-                            print(need_params[i], get_params)
+                            print(need_params[i], get_params[0])
                             custom_exception(
                                 "Get " + get_params[i] + " param, expected " + need_params[i],
                                 self.line,

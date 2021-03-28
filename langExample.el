@@ -9,7 +9,9 @@ node someFunc(node someNode){
    return test;
 }
 
+node someFunc = new node('tag');
 
+someFunc(doc.root());
 someAtr = 'value';
 
 doc = 'newDoc.xml'; // this is a comment and this line override path to xml doc
