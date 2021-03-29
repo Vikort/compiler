@@ -9,8 +9,6 @@ node someFunc(node someNode){
    return test;
 }
 
-node someFunc = new node('tag');
-
 someFunc(doc.root());
 someAtr = 'value';
 
@@ -63,8 +61,6 @@ while (current.size()){
    current = current[0];
    someFunc(test);
 }
-
-
 
 someFunc(root);
 

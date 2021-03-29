@@ -6,6 +6,7 @@ class Exceptions(Enum):
     TYPE_ERROR = 'TypeError'
     NAME_ERROR = 'NameError'
     VALUE_ERROR = 'ValueError'
+    ATTRIBUTE_ERROR = 'AttributeError'
 
 
 def custom_exception(msg: str, line: int, column: int, error_type: Exceptions) -> None:

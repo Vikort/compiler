@@ -20,6 +20,11 @@ class Node:
         'size': 'int',
         'add': ''
     }
+    class_methods = {
+        'document': ['root', 'findNode', 'save', 'delete', 'size'],
+        'node': ['findNode', 'attributes', 'insert', 'add', 'size'],
+        'attribute': [],
+    }
     global_funcs = {
         'print': all_types,
         'del': built_in_types_for_params,
@@ -132,7 +137,7 @@ class Assignment(Node):
         if self.var_name not in scope.keys():
             if self.var_name not in Node.global_vars.keys():
                 custom_exception(
-                    'Isn\'t initialized variable: ' + self.var_name,
+                    'Isn\'t initialized variable: \'' + self.var_name + '\'',
                     self.line,
                     self.column,
                     Exceptions.NAME_ERROR
@@ -140,7 +145,7 @@ class Assignment(Node):
         elif scope[self.var_name] != expression_type:
             if scope[self.var_name] not in built_in_types or expression_type not in constants:
                 custom_exception(
-                    'Wrong type of expression: got ' + expression_type + ' expected: ' + scope[
+                    'Wrong type of expression: got \'' + expression_type + '\' expected: ' + scope[
                         self.var_name] + ',' + str(constants),
                     self.line,
                     self.column,
@@ -176,7 +181,7 @@ class SumAssignment(Node):
         if self.var_name not in scope.keys():
             if self.var_name not in Node.global_vars.keys():
                 custom_exception(
-                    'Isn\'t initialized variable: ' + self.var_name,
+                    'Isn\'t initialized variable: \'' + self.var_name + '\'',
                     self.line,
                     self.column,
                     Exceptions.NAME_ERROR
@@ -184,7 +189,7 @@ class SumAssignment(Node):
         elif scope[self.var_name] != expression_type:
             if scope[self.var_name] != 'node' or (expression_type not in constants and expression_type != 'attribute'):
                 custom_exception(
-                    'Wrong type of expression: got ' + expression_type + ' expected: ' + scope[
+                    'Wrong type of expression: got \'' + expression_type + '\' expected: ' + scope[
                         self.var_name] + ',' + str(constants),
                     self.line,
                     self.column,
@@ -217,7 +222,7 @@ class Get(Node):
             if self.var_name not in scope.keys():
                 if self.var_name not in Node.global_vars.keys():
                     custom_exception(
-                        'Isn\'t initialized variable: ' + self.var_name,
+                        'Isn\'t initialized variable: \'' + self.var_name + '\'',
                         self.line,
                         self.column,
                         Exceptions.NAME_ERROR
@@ -226,11 +231,20 @@ class Get(Node):
         if self.attribute_name != '':
             if self.attribute_name not in Node.global_vars.keys():
                 custom_exception(
-                    'Isn\'t initialized attribute: ' + self.attribute_name,
+                    'Isn\'t initialized attribute: \'' + self.attribute_name + '\'',
                     self.line,
                     self.column,
                     Exceptions.NAME_ERROR
                 )
+            elif Node.global_vars.get(self.var_name) in Node.class_methods.keys():
+                if self.attribute_name not in Node.class_methods.get(Node.global_vars.get(self.var_name)):
+                    custom_exception(
+                        '\'' + Node.global_vars.get(
+                            self.var_name) + '\' has no attribute \'' + self.attribute_name + '\'',
+                        self.line,
+                        self.column,
+                        Exceptions.ATTRIBUTE_ERROR
+                    )
             else:
                 for i in self.children:
                     i.check_vars_scope(scope)
@@ -246,7 +260,7 @@ class Get(Node):
             get_params = self.children[0].check_params_call(scope)
             if need_params is None:
                 custom_exception(
-                    "Get invalid params in " + self.attribute_name,
+                    "Get invalid params in '" + self.attribute_name + "'",
                     self.line,
                     self.column,
                     Exceptions.TYPE_ERROR
@@ -271,7 +285,7 @@ class Get(Node):
                     index += 1
         elif need_params is not None:
             custom_exception(
-                "Get invalid params in " + self.attribute_name,
+                "Get invalid params in '" + self.attribute_name + "'",
                 self.line,
                 self.column,
                 Exceptions.TYPE_ERROR
@@ -298,7 +312,7 @@ class GetArrayElement(Node):
             if self.var_name not in scope.keys():
                 if self.var_name not in Node.global_vars.keys():
                     custom_exception(
-                        'Isn\'t initialized variable: ' + self.var_name,
+                        'Isn\'t initialized variable: \'' + self.var_name + '\'',
                         self.line,
                         self.column,
                         Exceptions.NAME_ERROR
@@ -332,7 +346,7 @@ class FuncCall(Node):
         if self.func_name != '':
             if self.func_name not in Node.global_vars.keys() and self.func_name not in Node.global_funcs.keys():
                 custom_exception(
-                    'Isn\'t initialized function: ' + self.func_name,
+                    'Isn\'t initialized function: \'' + self.func_name + '\'',
                     self.line,
                     self.column,
                     Exceptions.NAME_ERROR
@@ -379,14 +393,14 @@ class FuncCall(Node):
                         )
         elif self.func_name in Node.global_funcs.keys():
             custom_exception(
-                "Get invalid params in " + self.func_name,
+                "Get invalid params in '" + self.func_name + "'",
                 self.line,
                 self.column,
                 Exceptions.TYPE_ERROR
             )
         elif self.func_name not in Node.global_funcs.keys():
             custom_exception(
-                'Isn\'t initialized function: ' + self.func_name,
+                'Isn\'t initialized function: \'' + self.func_name + '\'',
                 self.line,
                 self.column,
                 Exceptions.NAME_ERROR
@@ -673,7 +687,7 @@ class TypeCast(Node):
         if self.var_name not in scope.keys():
             if self.var_name not in Node.global_vars.keys():
                 custom_exception(
-                    'Isn\'t initialized variable: ' + self.var_name,
+                    'Isn\'t initialized variable: \'' + self.var_name + '\'',
                     self.line,
                     self.column,
                     Exceptions.NAME_ERROR
@@ -688,7 +702,7 @@ class TypeCast(Node):
         if primordial_type == "node":
             if self.cast_type != "document":
                 custom_exception(
-                    "Can\'t reduce node to" + self.cast_type,
+                    "Can\'t reduce node to '" + self.cast_type + "'",
                     self.line,
                     self.column,
                     Exceptions.VALUE_ERROR
@@ -696,7 +710,7 @@ class TypeCast(Node):
         elif primordial_type == "document":
             if self.cast_type != "node":
                 custom_exception(
-                    "Can\'t reduce document to" + self.cast_type,
+                    "Can\'t reduce document to '" + self.cast_type + "'",
                     self.line,
                     self.column,
                     Exceptions.VALUE_ERROR
@@ -704,7 +718,7 @@ class TypeCast(Node):
         elif primordial_type == "string":
             if self.cast_type != "int" and self.cast_type != "float":
                 custom_exception(
-                    "Can\'t reduce string to" + self.cast_type,
+                    "Can\'t reduce string to '" + self.cast_type + "'",
                     self.line,
                     self.column,
                     Exceptions.VALUE_ERROR
@@ -712,7 +726,7 @@ class TypeCast(Node):
         elif primordial_type == "int":
             if self.cast_type != "string" and self.cast_type != "float":
                 custom_exception(
-                    "Can\'t reduce int to" + self.cast_type,
+                    "Can\'t reduce int to '" + self.cast_type + "'",
                     self.line,
                     self.column,
                     Exceptions.VALUE_ERROR
@@ -720,14 +734,14 @@ class TypeCast(Node):
         elif primordial_type == "float":
             if self.cast_type != "string" and self.cast_type != "int":
                 custom_exception(
-                    "Can\'t reduce float to" + self.cast_type,
+                    "Can\'t reduce float to '" + self.cast_type + "'",
                     self.line,
                     self.column,
                     Exceptions.VALUE_ERROR
                 )
         else:
             custom_exception(
-                'Irreducible type' + primordial_type,
+                'Irreducible type \'' + primordial_type + '\'',
                 self.line,
                 self.column,
                 Exceptions.VALUE_ERROR
@@ -753,7 +767,7 @@ class RangeStatement(Node):
         if self.collection not in scope.keys():
             if self.collection not in Node.global_vars.keys():
                 custom_exception(
-                    'Isn\'t initialized collection: ' + self.collection,
+                    'Isn\'t initialized collection: \'' + self.collection + '\'',
                     self.line,
                     self.column,
                     Exceptions.NAME_ERROR
@@ -863,7 +877,7 @@ class Expression(Node):
                 return 'int'
             else:
                 custom_exception(
-                    'Isn\'t initialized variable: ' + self.value,
+                    'Isn\'t initialized variable: \'' + self.value + '\'',
                     self.line,
                     self.column,
                     Exceptions.NAME_ERROR
@@ -874,7 +888,7 @@ class Expression(Node):
             if left_value != right_value:
                 if (left_value != 'attribute' and left_value != 'node') or right_value not in constants:
                     custom_exception(
-                        'Invalid type in operation' + self.operator + ':' + left_value + '!=' + right_value,
+                        'Invalid type in operation ' + self.operator + ':' + left_value + '!=' + right_value,
                         self.line,
                         self.column,
                         Exceptions.TYPE_ERROR
